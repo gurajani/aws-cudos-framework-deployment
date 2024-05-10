@@ -9,12 +9,12 @@ SELECT
     'ebs_volume' as module,
     'ebs_volume' as recommendationsourcetype,
     finding as finding,
-    cast ('' as varchar) as reason,
+    cast (NULL as varchar(1)) as reason,
     lookbackperiodindays as lookbackperiodindays,
     currentperformancerisk as currentperformancerisk,
     errorcode as errorcode,
     errormessage as errormessage,
-    cast ('' as varchar) as ressouce_details,
+    cast (NULL as varchar(1)) as ressouce_details,
 
     CONCAT(
         utilizationmetrics_volumereadopspersecondmaximum, ';',
@@ -25,7 +25,7 @@ SELECT
 
     'Current' as option_name,
     currentconfiguration_volumetype as option_from,
-    cast ('' as varchar) as option_to,
+    cast (NULL as varchar(1)) as option_to,
     recommendationoptions_1_estimatedmonthlysavings_currency as currency,
     try_cast(current_monthlyprice as double) as monthlyprice,
     try(cast(current_monthlyprice as double) / 730  ) as hourlyprice,
@@ -67,14 +67,15 @@ SELECT
     ) as max_estimatedmonthlysavings_value_medium,
 
     CONCAT(
-        currentperformancerisk, ';', --  as performancerisk
-        currentconfiguration_volumetype, ';', --  as volumetype
-        currentconfiguration_volumesize, ';', --  as volumesize
-        currentconfiguration_volumebaselineiops, ';', --  as volumebaselineiops
-        currentconfiguration_volumebaselinethroughput, ';', --  as volumebaselinethroughput
-        currentconfiguration_volumeburstiops, ';', --  as volumeburstiops
-        currentconfiguration_volumeburstthroughput, ';' --  as volumeburstthroughput
-    ) as option_details
+        COALESCE(currentperformancerisk, 'na'), ';',
+        COALESCE(currentconfiguration_volumetype, 'na'), ';',
+        COALESCE(currentconfiguration_volumesize, 'na'), ';',
+        COALESCE(currentconfiguration_volumebaselineiops, 'na'), ';',
+        COALESCE(currentconfiguration_volumebaselinethroughput, 'na'), ';',
+        COALESCE(currentconfiguration_volumeburstiops, 'na'), ';',
+        COALESCE(currentconfiguration_volumeburstthroughput, 'na'), ';'
+    ) as option_details,
+    tags as tags
 
 FROM
     compute_optimizer_ebs_volume_lines
@@ -91,13 +92,13 @@ UNION SELECT
     'ebs_volume' as module,
     'ebs_volume' as recommendationsourcetype,
     finding as finding,
-    cast ('' as varchar) as reason,
+    cast (NULL as varchar(1)) as reason,
     lookbackperiodindays as lookbackperiodindays,
     currentperformancerisk as currentperformancerisk,
     errorcode as errorcode,
     errormessage as errormessage,
-    cast ('' as varchar) as ressouce_details,
-    cast ('' as varchar) as utilizationmetrics,
+    cast (NULL as varchar(1)) as ressouce_details,
+    cast (NULL as varchar(1)) as utilizationmetrics,
 
     'Option 1' as option_name,
     currentconfiguration_volumetype as option_from,
@@ -143,20 +144,22 @@ UNION SELECT
     ) as max_estimatedmonthlysavings_value_medium,
 
     CONCAT(
-        recommendationoptions_1_performancerisk, ';', -- as performancerisk,
-        recommendationoptions_1_configuration_volumetype, ';', -- as volumetype,
-        recommendationoptions_1_configuration_volumesize, ';', -- as volumesize,
-        recommendationoptions_1_configuration_volumebaselineiops, ';', -- as volumebaselineiops,
-        recommendationoptions_1_configuration_volumebaselinethroughput, ';', -- as volumebaselinethroughput,
-        recommendationoptions_1_configuration_volumeburstiops, ';', -- as volumeburstiops,
-        recommendationoptions_1_configuration_volumeburstthroughput, ';' -- as volumeburstthroughput,
-    ) as option_details
+        COALESCE(recommendationoptions_1_performancerisk, 'na'), ';',
+        COALESCE(recommendationoptions_1_configuration_volumetype, 'na'), ';',
+        COALESCE(recommendationoptions_1_configuration_volumesize, 'na'), ';',
+        COALESCE(recommendationoptions_1_configuration_volumebaselineiops, 'na'), ';',
+        COALESCE(recommendationoptions_1_configuration_volumebaselinethroughput, 'na'), ';',
+        COALESCE(recommendationoptions_1_configuration_volumeburstiops, 'na'), ';',
+        COALESCE(recommendationoptions_1_configuration_volumeburstthroughput, 'na'), ';'
+    ) as option_details,
+
+    tags as tags
 
 FROM
     compute_optimizer_ebs_volume_lines
 WHERE
     volumearn LIKE '%arn:%'
-  AND recommendationoptions_1_estimatedmonthlysavings_currency <> ''
+  AND recommendationoptions_1_configuration_volumetype <> ''
 
 
 UNION SELECT
@@ -169,13 +172,13 @@ UNION SELECT
     'ebs_volume' as module,
     'ebs_volume' as recommendationsourcetype,
     finding as finding,
-    cast ('' as varchar) as reason,
+    cast (NULL as varchar(1)) as reason,
     lookbackperiodindays as lookbackperiodindays,
     currentperformancerisk as currentperformancerisk,
     errorcode as errorcode,
     errormessage as errormessage,
-    cast ('' as varchar) as ressouce_details,
-    cast ('' as varchar) as utilizationmetrics,
+    cast (NULL as varchar(1)) as ressouce_details,
+    cast (NULL as varchar(1)) as utilizationmetrics,
 
     'Option 2' as option_name,
     currentconfiguration_volumetype as option_from,
@@ -222,20 +225,22 @@ UNION SELECT
 
 
     CONCAT(
-        recommendationoptions_2_performancerisk, ';', -- as performancerisk,
-        recommendationoptions_2_configuration_volumetype, ';', -- as volumetype,
-        recommendationoptions_2_configuration_volumesize, ';', -- as volumesize,
-        recommendationoptions_2_configuration_volumebaselineiops, ';', -- as volumebaselineiops,
-        recommendationoptions_2_configuration_volumebaselinethroughput, ';', -- as volumebaselinethroughput,
-        recommendationoptions_2_configuration_volumeburstiops, ';', -- as volumeburstiops,
-        recommendationoptions_2_configuration_volumeburstthroughput, ';' -- as volumeburstthroughput,
-    ) as option_details
+        COALESCE(recommendationoptions_2_performancerisk, 'na'), ';',
+        COALESCE(recommendationoptions_2_configuration_volumetype, 'na'), ';',
+        COALESCE(recommendationoptions_2_configuration_volumesize, 'na'), ';',
+        COALESCE(recommendationoptions_2_configuration_volumebaselineiops, 'na'), ';',
+        COALESCE(recommendationoptions_2_configuration_volumebaselinethroughput, 'na'), ';',
+        COALESCE(recommendationoptions_2_configuration_volumeburstiops, 'na'), ';',
+        COALESCE(recommendationoptions_2_configuration_volumeburstthroughput, 'na'), ';'
+    ) as option_details,
+
+    tags as tags
 
 FROM
     compute_optimizer_ebs_volume_lines
 WHERE
     volumearn LIKE '%arn:%'
-  AND recommendationoptions_2_estimatedmonthlysavings_currency <> ''
+  AND recommendationoptions_2_configuration_volumetype <> ''
 
   UNION SELECT
     TRY(date_parse(lastrefreshtimestamp_utc,'%Y-%m-%d %H:%i:%s')) as lastrefreshtimestamp_utc,
@@ -247,13 +252,13 @@ WHERE
     'ebs_volume' as module,
     'ebs_volume' as recommendationsourcetype,
     finding as finding,
-    cast ('' as varchar) as reason,
+    cast (NULL as varchar(1)) as reason,
     lookbackperiodindays as lookbackperiodindays,
     currentperformancerisk as currentperformancerisk,
     errorcode as errorcode,
     errormessage as errormessage,
-    cast ('' as varchar) as ressouce_details,
-    cast ('' as varchar) as utilizationmetrics,
+    cast (NULL as varchar(1)) as ressouce_details,
+    cast (NULL as varchar(1)) as utilizationmetrics,
 
 
     'Option 3' as option_name,
@@ -300,18 +305,20 @@ WHERE
     ) as max_estimatedmonthlysavings_value_medium,
 
     CONCAT(
-        recommendationoptions_3_performancerisk, ';', -- as performancerisk,
-        recommendationoptions_3_configuration_volumetype, ';', -- as volumetype,
-        recommendationoptions_3_configuration_volumesize, ';', -- as volumesize,
-        recommendationoptions_3_configuration_volumebaselineiops, ';', -- as volumebaselineiops,
-        recommendationoptions_3_configuration_volumebaselinethroughput, ';', -- as volumebaselinethroughput,
-        recommendationoptions_3_configuration_volumeburstiops, ';', -- as volumeburstiops,
-        recommendationoptions_3_configuration_volumeburstthroughput, ';' -- as volumeburstthroughput,
-    ) as option_details
+        COALESCE(recommendationoptions_3_performancerisk, 'na'), ';',
+        COALESCE(recommendationoptions_3_configuration_volumetype, 'na'), ';',
+        COALESCE(recommendationoptions_3_configuration_volumesize, 'na'), ';',
+        COALESCE(recommendationoptions_3_configuration_volumebaselineiops, 'na'), ';',
+        COALESCE(recommendationoptions_3_configuration_volumebaselinethroughput, 'na'), ';',
+        COALESCE(recommendationoptions_3_configuration_volumeburstiops, 'na'), ';',
+        COALESCE(recommendationoptions_3_configuration_volumeburstthroughput, 'na'), ';'
+    ) as option_details,
+
+    tags as tags
 
 FROM
     compute_optimizer_ebs_volume_lines
 WHERE
     volumearn LIKE '%arn:%'
-  AND recommendationoptions_3_estimatedmonthlysavings_currency <> ''
+  AND recommendationoptions_3_configuration_volumetype <> ''
 )

@@ -1,9 +1,22 @@
 # What's new in the Cost Intelligence Dashboard (CID) 
 
+## CID - 3.3
+* All sheets
+	* Added Payer Accounts control
+
+## CID - 3.3
+* RI/SP Summary
+	* Fixed Compute SP Total Savings for current Month in "Pricing Model Savings Summary" Visual
+
+## CID - 3.2
+* Billing summary 
+	* Limited Forecast
+* Compute Summary
+	* Fixed spot savings visual.
+    
 ## CID - 3.1
 * All
 	* Added Account Name control to all tabs
-
 * Compute Summary
 	* Removed % sign from Spot savings.
 

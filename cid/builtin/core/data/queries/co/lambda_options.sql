@@ -18,8 +18,8 @@ CREATE OR REPLACE VIEW compute_optimizer_lambda_options AS
     ) reason
    , lookbackperiodindays lookbackperiodindays
    , currentperformancerisk as currentperformancerisk
-   , cast(NULL as varchar) errorcode
-   , cast(NULL as varchar) errormessage
+   , cast(NULL as varchar(1)) errorcode
+   , cast(NULL as varchar(1)) errormessage
    , CONCAT(
          numberofinvocations , ';',
          current_costtotal , ';',
@@ -32,8 +32,8 @@ CREATE OR REPLACE VIEW compute_optimizer_lambda_options AS
          utilizationmetrics_memorymaximum, ';'
     ) utilizationmetrics
    , 'Current' option_name
-    , cast(NULL as varchar) option_from
-   , cast(NULL as varchar) option_to
+   , cast(NULL as varchar(1)) option_from
+   , cast(NULL as varchar(1)) option_to
    , recommendationoptions_1_estimatedmonthlysavings_currency currency
    , try_cast(NULL as double) as monthlyprice
    , try_cast(NULL as double) as hourlyprice
@@ -56,15 +56,17 @@ CREATE OR REPLACE VIEW compute_optimizer_lambda_options AS
     ) as max_estimatedmonthlysavings_value_medium
 
    , CONCAT(
-         currentperformancerisk, ';', -- '-'
-         currentconfiguration_memorysize, ';',
-         current_costaverage, ';',
-         current_costaverage, ';',
-         utilizationmetrics_durationaverage, ';',
-         '', ';',
-         utilizationmetrics_durationmaximum, ';'
+          COALESCE(currentperformancerisk, 'na'), ';',
+          COALESCE(currentconfiguration_memorysize, 'na'), ';',
+          COALESCE(current_costaverage, 'na'), ';',
+          COALESCE(current_costaverage, 'na'), ';',
+          COALESCE(utilizationmetrics_durationaverage, 'na'), ';',
+          '', ';',
+          COALESCE(utilizationmetrics_durationmaximum, 'na'), ';'
+      ) option_details
 
-       ) option_details
+   , cast('' as varchar(1)) as tags
+
    FROM
      compute_optimizer_lambda_lines
    WHERE (functionarn LIKE '%arn:%')
@@ -78,16 +80,16 @@ UNION SELECT
    , 'lambda' module
    , 'lambda' recommendationsourcetype
    , finding finding
-   , cast(NULL as varchar) reason
+   , cast(NULL as varchar(1)) reason
    , lookbackperiodindays lookbackperiodindays
    , currentperformancerisk as currentperformancerisk
-   , cast(NULL as varchar) errorcode
-   , cast(NULL as varchar) errormessage
-   , cast(NULL as varchar) ressouce_details
-   , cast(NULL as varchar) utilizationmetrics
+   , cast(NULL as varchar(1)) errorcode
+   , cast(NULL as varchar(1)) errormessage
+   , cast(NULL as varchar(1)) ressouce_details
+   , cast(NULL as varchar(1)) utilizationmetrics
    , 'Option 1' as option_name
-   , cast(NULL as varchar) option_from
-   , cast(NULL as varchar) option_to
+   , cast(NULL as varchar(1)) option_from
+   , cast(NULL as varchar(1)) option_to
    , recommendationoptions_1_estimatedmonthlysavings_currency currency
    , cast(NULL as double) monthlyprice
    , cast(NULL as double) hourlyprice
@@ -109,15 +111,15 @@ UNION SELECT
         CASE WHEN recommendationoptions_3_estimatedmonthlysavings_currency != '' THEN TRY_CAST(recommendationoptions_3_estimatedmonthlysavings_value as double) ELSE 0E0 END
     ) as max_estimatedmonthlysavings_value_medium
    , CONCAT(
-         '', ';',  --no performance risk
-         recommendationoptions_1_configuration_memorysize, ';',
-         recommendationoptions_1_costlow, ';',
-         recommendationoptions_1_costhigh, ';',
-         recommendationoptions_1_projectedutilizationmetrics_durationexpected,
-         recommendationoptions_1_projectedutilizationmetrics_durationlowerbound, ';',
-         recommendationoptions_1_projectedutilizationmetrics_durationupperbound, ';'
-    ) option_details
-
+          '', ';',  --no performance risk
+          COALESCE(recommendationoptions_1_configuration_memorysize, 'na'), ';',
+          COALESCE(recommendationoptions_1_costlow, 'na'), ';',
+          COALESCE(recommendationoptions_1_costhigh, 'na'), ';',
+          COALESCE(recommendationoptions_1_projectedutilizationmetrics_durationexpected, 'na'), ';',
+          COALESCE(recommendationoptions_1_projectedutilizationmetrics_durationlowerbound, 'na'), ';',
+          COALESCE(recommendationoptions_1_projectedutilizationmetrics_durationupperbound, 'na'), ';'
+      ) option_details
+   , cast('' as varchar(1)) as tags
 
     FROM
         compute_optimizer_lambda_lines
@@ -134,16 +136,16 @@ UNION SELECT
    , 'lambda' module
    , 'lambda' recommendationsourcetype
    , finding finding
-   , cast(NULL as varchar) reason
+   , cast(NULL as varchar(1)) reason
    , lookbackperiodindays lookbackperiodindays
    , currentperformancerisk as currentperformancerisk
-   , cast(NULL as varchar) errorcode
-   , cast(NULL as varchar) errormessage
-   , cast(NULL as varchar) ressouce_details
-   , cast(NULL as varchar) utilizationmetrics
+   , cast(NULL as varchar(1)) errorcode
+   , cast(NULL as varchar(1)) errormessage
+   , cast(NULL as varchar(1)) ressouce_details
+   , cast(NULL as varchar(1)) utilizationmetrics
    , 'Option 2' as option_name
-   , cast(NULL as varchar) option_from
-   , cast(NULL as varchar) option_to
+   , cast(NULL as varchar(1)) option_from
+   , cast(NULL as varchar(1)) option_to
    , recommendationoptions_2_estimatedmonthlysavings_currency currency
    , cast(NULL as double) monthlyprice
    , cast(NULL as double) hourlyprice
@@ -165,14 +167,16 @@ UNION SELECT
         CASE WHEN recommendationoptions_3_estimatedmonthlysavings_currency != '' THEN TRY_CAST(recommendationoptions_3_estimatedmonthlysavings_value as double) ELSE 0E0 END
     ) as max_estimatedmonthlysavings_value_medium
    , CONCAT(
-         '', ';',  --no performance risk
-         recommendationoptions_2_configuration_memorysize, ';',
-         recommendationoptions_2_costlow, ';',
-         recommendationoptions_2_costhigh, ';',
-         recommendationoptions_2_projectedutilizationmetrics_durationexpected,
-         recommendationoptions_2_projectedutilizationmetrics_durationlowerbound, ';',
-         recommendationoptions_2_projectedutilizationmetrics_durationupperbound, ';'
-    ) option_details
+          '', ';',  --no performance risk
+          COALESCE(recommendationoptions_2_configuration_memorysize, 'na'), ';',
+          COALESCE(recommendationoptions_2_costlow, 'na'), ';',
+          COALESCE(recommendationoptions_2_costhigh, 'na'), ';',
+          COALESCE(recommendationoptions_2_projectedutilizationmetrics_durationexpected, 'na'), ';',
+          COALESCE(recommendationoptions_2_projectedutilizationmetrics_durationlowerbound, 'na'), ';',
+          COALESCE(recommendationoptions_2_projectedutilizationmetrics_durationupperbound, 'na'), ';'
+      ) option_details
+   , cast('' as varchar(1)) as tags
+
 
 
     FROM
@@ -192,16 +196,16 @@ UNION SELECT
    , 'lambda' module
    , 'lambda' recommendationsourcetype
    , finding finding
-   , cast(NULL as varchar) reason
+   , cast(NULL as varchar(1)) reason
    , lookbackperiodindays lookbackperiodindays
    , currentperformancerisk as currentperformancerisk
-   , cast(NULL as varchar) errorcode
-   , cast(NULL as varchar) errormessage
-   , cast(NULL as varchar) ressouce_details
-   , cast(NULL as varchar) utilizationmetrics
+   , cast(NULL as varchar(1)) errorcode
+   , cast(NULL as varchar(1)) errormessage
+   , cast(NULL as varchar(1)) ressouce_details
+   , cast(NULL as varchar(1)) utilizationmetrics
    , 'Option 3' as option_name
-   , cast(NULL as varchar) option_from
-   , cast(NULL as varchar) option_to
+   , cast(NULL as varchar(1)) option_from
+   , cast(NULL as varchar(1)) option_to
    , recommendationoptions_3_estimatedmonthlysavings_currency currency
    , cast(NULL as double) monthlyprice
    , cast(NULL as double) hourlyprice
@@ -223,15 +227,15 @@ UNION SELECT
         CASE WHEN recommendationoptions_3_estimatedmonthlysavings_currency != '' THEN TRY_CAST(recommendationoptions_3_estimatedmonthlysavings_value as double) ELSE 0E0 END
     ) as max_estimatedmonthlysavings_value_medium
    , CONCAT(
-         '', ';',  --no performance risk
-         recommendationoptions_3_configuration_memorysize, ';',
-         recommendationoptions_3_costlow, ';',
-         recommendationoptions_3_costhigh, ';',
-         recommendationoptions_3_projectedutilizationmetrics_durationexpected,
-         recommendationoptions_3_projectedutilizationmetrics_durationlowerbound, ';',
-         recommendationoptions_3_projectedutilizationmetrics_durationupperbound, ';'
-    ) option_details
-
+          '', ';',  --no performance risk
+          COALESCE(recommendationoptions_3_configuration_memorysize, 'na'), ';',
+          COALESCE(recommendationoptions_3_costlow, 'na'), ';',
+          COALESCE(recommendationoptions_3_costhigh, 'na'), ';',
+          COALESCE(recommendationoptions_3_projectedutilizationmetrics_durationexpected, 'na'), ';',
+          COALESCE(recommendationoptions_3_projectedutilizationmetrics_durationlowerbound, 'na'), ';',
+          COALESCE(recommendationoptions_3_projectedutilizationmetrics_durationupperbound, 'na'), ';'
+      ) option_details
+   , cast(NULL as varchar(1)) as tags
 
     FROM
         compute_optimizer_lambda_lines

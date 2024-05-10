@@ -1,4 +1,6 @@
+import os
 import logging
+import platform
 
 import click
 
@@ -14,7 +16,6 @@ prog_name="CLOUD INTELLIGENCE DASHBOARDS (CID) CLI"
 print(f'{prog_name} {version}\n')
 
 if __version__ != latest_version and latest_version != 'UNDEFINED':
-    
     print('\033[93mUPDATE AVAILABLE\033[0m')
     print(f'\033[93mA new version {latest_version} is available, please consider update cid-cmd package via pip\033[0m\n\n')
     logger.info(f'A new version {latest_version} is available, please consider update cid-cmd package via pip')
@@ -67,6 +68,11 @@ def cid_command(func):
 @click.option('-y', '--yes', help='confirm all', is_flag=True, default=False)
 @click.pass_context
 def main(ctx, **kwargs):
+
+    # enable color for windows terminal
+    if platform.system() == "Windows":
+        os.system('color') #nosec B605, B607
+
     ctx.obj = Cid(**kwargs)
 
 
@@ -111,12 +117,14 @@ def deploy(ctx, **kwargs):
     
     \b
     Command options:
+     --category TEXT                       The dashboards category to choose from. Not needed if dashboard-id provided directly
      --dashboard-id TEXT                   QuickSight dashboard id (cudos, cost_intelligence_dashboard, kpi_dashboard, ta-organizational-view, trends-dashboard etc)
      --athena-database TEXT                Athena database
      --athena-workgroup TEXT               Athena workgroup
      --glue-data-catalog TEXT              Glue data catalog
      --cur-table-name TEXT                 CUR table name
      --quicksight-datasource-id TEXT       QuickSight Datasource ARN (if not found one with provided Athena workgroup)
+     --quicksight-datasource-role-arn TEXT IAM Role used for DataSource Creation (if not provided, will use the default QS Role). Must have access to Athena and S3 buckets.
      --quicksight-user TEXT                QuickSight user
      --dataset-{dataset_name}-id TEXT      QuickSight dataset id for a specific dataset
      --view-{view_name}-{parameter} TEXT   a custom parameter for a view creation, can use variable: {account_id}
@@ -125,6 +133,8 @@ def deploy(ctx, **kwargs):
      --on-drift (show|override)            Action if a drift of view and dataset is discovered. 'override' = override drift(will destroy customization) or 'show' (default) = show a diff. In Unattended mode (without terminal on-drift will have allways override behaviour)
      --update (yes|no)                     Update if some elements are already installed. Default = 'no'
      --resources TEXT                      CID resources yaml file or url
+     --category TEXT                       Comma separated list of categories of dashboards (ex: foundational,advanced )
+     --catalog TEXT                        Comma separated list of catalog files or urls (ex: foundational,advanced )
     """
     ctx.obj.deploy(**kwargs)
 
@@ -133,7 +143,7 @@ def deploy(ctx, **kwargs):
 @click.option('-y', '--yes', help='confirm all', is_flag=True, default=False)
 @cid_command
 def export(ctx, **kwargs):
-    """Expot Dashboard
+    """Export Dashboard
     
     \b
     Command options:
@@ -144,9 +154,10 @@ def export(ctx, **kwargs):
         --template-version           Version description vX.Y.Z
         --reader-account             Account id with whom you want to share with or *
         --dashboard-export-method
-               (definition|template) A method (definition=pull json definition of Analysis OR template=create QuickSught Teamplate)
+               (definition|template) A method (definition=pull json definition of Analysis OR template=create QuickSight Template)
         --export-known-datasets
             (no|yes)                 If 'yes' the export will include DataSets that are already in resources file. Default = no
+        --category TEXT              The dashboards category. Default = Custom
         --output                     A filename (.yaml)
     """
     ctx.obj.export(**kwargs)
@@ -166,7 +177,7 @@ def status(ctx, dashboard_id, **kwargs):
 @click.option('-y', '--yes', help='confirm all', is_flag=True, default=False)
 @cid_command
 def delete(ctx, dashboard_id, **kwargs):
-    """Delete Dashboard and all dependencies unused by other CID-managed dasboards
+    """Delete Dashboard and all dependencies unused by other CID-managed dashboards
     (including QuickSight datasets, Athena views and tables)
 
     \b
@@ -222,8 +233,48 @@ def cleanup(ctx, **kwargs):
 @cid_command
 def share(ctx, dashboard_id, **kwargs):
     """Share QuickSight resources (Dashboard, Datasets, DataSource)"""
-    
     ctx.obj.share(dashboard_id)
+
+@click.option('-v', '--verbose', count=True)
+@click.option('-y', '--yes', help='confirm all', is_flag=True, default=False)
+@cid_command
+def init_qs(ctx, **kwargs):
+    """Initialize Amazon QuickSight
+
+    \b
+     --enable-quicksight-enterprise (yes|no) Confirm the activation of QuickSight
+     --account-name NAME                     Unique QuickSight account name (Unique across all AWS users)
+     --notification-email EMAIL              User's email for QuickSight notifications
+    """
+
+    ctx.obj.init_qs(**kwargs)
+
+@click.option('-v', '--verbose', count=True)
+@cid_command
+def create_cur_table(ctx, **kwargs):
+    """Initialize CUR table
+
+    \b
+     --view-cur-location  s3://BUCKET/PATH   S3 path with CUR data. We support only 2 types of CUR path: 's3://{bucket}/cur' and 's3://{bucket}/{prefix}/{cur_name}/{cur_name}'
+     --crawler-role       ROLE               Name or ARN of crawler role
+    """
+
+    ctx.obj.create_cur_table(**kwargs)
+
+@click.option('-v', '--verbose', count=True)
+@click.option('-y', '--yes', help='confirm all', is_flag=True, default=False)
+@cid_command
+def teardown(ctx, **kwargs):
+    """Delete all CID assets
+
+    \b
+
+    THIS IS VERY DANGEROUS. DO NOT USE IT.
+    """
+
+    ctx.obj.teardown(**kwargs)
 
 if __name__ == '__main__':
     main()
+
+

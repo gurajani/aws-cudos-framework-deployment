@@ -1,4 +1,3 @@
-
 CREATE OR REPLACE VIEW kpi_tracker AS 
 SELECT DISTINCT
 spend_all.billing_period
@@ -70,6 +69,10 @@ spend_all.billing_period
 , instance_all.lambda_graviton_cost
 , instance_all.lambda_graviton_eligible_cost
 , instance_all.lambda_graviton_potential_savings
+, instance_all.rds_license
+, instance_all.rds_no_license
+, instance_all.rds_sql_server_cost
+, instance_all.rds_oracle_cost
 FROM
   (((((account_map
 LEFT JOIN (
@@ -83,7 +86,7 @@ LEFT JOIN (
      summary_view
    WHERE (CAST("concat"("year", '-', "month", '-01') AS date) >= ("date_trunc"('month', current_date) - INTERVAL  '3' MONTH))
    GROUP BY 1, 2, 3
-)  spend_all ON (spend_all.linked_account_id = account_id))
+)  spend_all ON (spend_all.linked_account_id = account_id) AND (spend_all.payer_account_id = payer_account_id))
 LEFT JOIN (
    SELECT DISTINCT
      billing_period
@@ -107,6 +110,8 @@ LEFT JOIN (
    , "sum"("rds_graviton_potential_savings") "rds_graviton_potential_savings"
    , "sum"("rds_commit_potential_savings") "rds_commit_potential_savings"
    , "sum"("rds_commit_savings") "rds_commit_savings"
+   , "sum"((CASE WHEN ("license_model" IN ('License included', 'Bring your own license')) THEN 1 ELSE 0 END)) "rds_license"
+   , "sum"((CASE WHEN ("license_model" LIKE 'No license required') THEN 1 ELSE 0 END)) "rds_no_license"
    , "sum"("elasticache_all_cost") "elasticache_all_cost"
    , "sum"("elasticache_ondemand_cost") "elasticache_ondemand_cost"
    , "sum"("elasticache_graviton_cost") "elasticache_graviton_cost"
@@ -142,10 +147,12 @@ LEFT JOIN (
    , "sum"("lambda_graviton_cost") "lambda_graviton_cost"
    , "sum"("lambda_graviton_eligible_cost") "lambda_graviton_eligible_cost"
    , "sum"("lambda_graviton_potential_savings") "lambda_graviton_potential_savings"
+   , "sum"("rds_sql_server_cost") "rds_sql_server_cost"
+   , "sum"("rds_oracle_cost") "rds_oracle_cost"
    FROM
      kpi_instance_all
    GROUP BY 1, 2, 3
-)  instance_all ON ((instance_all.linked_account_id = account_id) AND (instance_all.billing_period = spend_all.billing_period)))
+)  instance_all ON ((instance_all.linked_account_id = account_id) AND (instance_all.billing_period = spend_all.billing_period) AND (instance_all.payer_account_id = spend_all.payer_account_id)))
 LEFT JOIN (
    SELECT DISTINCT
      billing_period
@@ -159,7 +166,7 @@ LEFT JOIN (
    FROM
      kpi_ebs_storage_all
    GROUP BY 1, 2, 3
-)  ebs_all ON ((ebs_all.linked_account_id = account_id) AND (ebs_all.billing_period = spend_all.billing_period)))
+)  ebs_all ON ((ebs_all.linked_account_id = account_id) AND (ebs_all.billing_period = spend_all.billing_period) AND (ebs_all.payer_account_id = spend_all.payer_account_id)))
 LEFT JOIN (
    SELECT DISTINCT
      billing_period
@@ -171,7 +178,7 @@ LEFT JOIN (
    FROM
      kpi_ebs_snap
    GROUP BY 1, 2, 3
-)  snap ON ((snap.linked_account_id = account_id) AND (snap.billing_period = spend_all.billing_period)))
+)  snap ON ((snap.linked_account_id = account_id) AND (snap.billing_period = spend_all.billing_period) AND (snap.payer_account_id = spend_all.payer_account_id)))
 LEFT JOIN (
    SELECT DISTINCT
      billing_period
@@ -183,5 +190,5 @@ LEFT JOIN (
    FROM
      kpi_s3_storage_all
    GROUP BY 1, 2, 3
-)  s3_all ON ((s3_all.linked_account_id = account_id) AND (s3_all.billing_period = spend_all.billing_period)))
+)  s3_all ON ((s3_all.linked_account_id = account_id) AND (s3_all.billing_period = spend_all.billing_period) AND (s3_all.payer_account_id = spend_all.payer_account_id)))
 WHERE (spend_all.billing_period >= ("date_trunc"('month', current_timestamp) - INTERVAL  '3' MONTH))
